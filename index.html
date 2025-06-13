@@ -15,15 +15,9 @@
         .font-dancing {
             font-family: 'Dancing Script', cursive;
         }
-        #frase-amor {
+        #frase-amor, #conteudo-principal {
             transition: opacity 1.5s ease-in-out;
         }
-        #youtube-player {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-        }
-        /* Estilos para o slideshow */
         .background-slide {
             position: fixed;
             inset: 0;
@@ -33,64 +27,111 @@
             background-position: center;
             transition: opacity 1.5s ease-in-out;
         }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+            animation: pulse 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
+    
+    <!-- Tela de Início para garantir a interação do usuário -->
+    <div id="tela-inicio" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900">
+        <h2 class="font-dancing text-4xl md:text-6xl text-white mb-4">Um presente para você</h2>
+        <p class="text-xl text-pink-300 mb-8">❤️ Karen Cristina ❤️</p>
+        <button id="start-button" class="bg-pink-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg cursor-not-allowed opacity-75">
+            A carregar a surpresa...
+        </button>
+    </div>
 
-    <!-- Divs para o slideshow com efeito de crossfade -->
-    <div id="background-bottom" class="background-slide z-0"></div>
-    <div id="background-top" class="background-slide z-10">
-        <!-- Overlay para melhorar a leitura do texto -->
+    <!-- Divs para o slideshow (invisíveis no início) -->
+    <div id="background-bottom" class="background-slide z-0 opacity-0"></div>
+    <div id="background-top" class="background-slide z-10 opacity-0">
         <div class="absolute inset-0 w-full h-full bg-black bg-opacity-50"></div>
     </div>
 
-
-    <!-- Conteúdo principal -->
-    <div class="relative z-20 flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        
+    <!-- Conteúdo principal (invisível no início) -->
+    <div id="conteudo-principal" class="relative z-20 flex flex-col items-center justify-center min-h-screen p-4 text-center opacity-0">
         <h1 class="font-dancing text-5xl md:text-7xl text-white drop-shadow-lg mb-4">
             Para Karen Cristina
         </h1>
-        
         <p class="text-lg md:text-2xl text-gray-200 drop-shadow-md mb-8 max-w-2xl">
             Você é a página mais linda que o destino escreveu na minha vida.
         </p>
-
-        <!-- Div para exibir as frases de amor -->
         <div class="h-20">
             <p id="frase-amor" class="font-dancing text-3xl md:text-4xl text-pink-300 drop-shadow-lg opacity-0"></p>
         </div>
-
     </div>
 
-    <!-- Player de Música do YouTube (invisível) -->
-    <div id="youtube-player"></div>
+    <!-- Player de áudio HTML5, invisível -->
+    <audio id="homenagem-audio" loop></audio>
 
     <script>
-        // --- LÓGICA DO SLIDESHOW DE IMAGENS ---
+        // --- ELEMENTOS DA PÁGINA ---
+        const telaInicio = document.getElementById('tela-inicio');
+        const startButton = document.getElementById('start-button');
+        const audioPlayer = document.getElementById('homenagem-audio');
+        const conteudoPrincipal = document.getElementById('conteudo-principal');
         const bgTop = document.getElementById('background-top');
         const bgBottom = document.getElementById('background-bottom');
-        
-        // As fotos que você enviou já estão aqui
+        const fraseElemento = document.getElementById('frase-amor');
+
+        // --- DADOS ---
+        // Fotos atualizadas
         const slideImages = [
-            "https://i.postimg.cc/jSkLPbJc/494577205-1657482031603193-8087268599252394860-n.png",
-            "https://i.postimg.cc/6Q2ThmrX/494577293-727141229873547-2557893804760909877-n.png",
-            "https://i.postimg.cc/Xq3J4NTj/494828293-2530584067296384-6732234150509691637-n.png",
-            "https://i.postimg.cc/wMVBv8ph/505155204-1930784567736284-5782088089535857319-n.png",
-            "https://i.postimg.cc/63C3k4bb/505191625-1696553880982498-8858636085352205061-n.png",
-            "https://i.postimg.cc/MGCH3m5j/eric1.jpg"
+            "https://i.postimg.cc/9MLSFJkD/494577205-1657482031603193-8087268599252394860-n.png",
+            "https://i.postimg.cc/4yn0KpCB/494577293-727141229873547-2557893804760909877-n.png",
+            "https://i.postimg.cc/tCZfpdNg/494828293-2530584067296384-6732234150509691637-n.png",
+            "https://i.postimg.cc/Prg7xLSQ/505155204-1930784567736284-5782088089535857319-n.png",
+            "https://i.postimg.cc/J7dgfYJg/505191625-1696553880982498-8858636085352205061-n.png",
+            "https://i.postimg.cc/tJfMF7py/eric1.jpg"
         ];
         
+        const frases = [ "Karen Cristina, você ilumina os meus dias.", "Cada momento com você é o meu favorito.", "Seu sorriso é a melodia mais linda que já ouvi.", "O meu lugar favorito no mundo é ao seu lado.", "Ainda bem que a vida te trouxe pra mim.", "Você não é apenas o meu amor, é a minha vida.", "Para o mundo, você pode ser uma pessoa, mas para mim, você é o mundo.", "Eu te amo mais do que as palavras podem dizer." ];
+        
         let currentImageIndex = 0;
+        let indexFrase = 0;
 
+        // --- LÓGICA PRINCIPAL ---
+
+        // 1. Link direto para a sua música no GitHub
+        audioPlayer.src = "https://ericekaren.github.io/AMOVOCE/LoveLove.mp3";
+        audioPlayer.load();
+
+        // 2. Espera a música estar pronta para tocar
+        audioPlayer.addEventListener('canplaythrough', function () {
+            startButton.textContent = "Clique para começar";
+            startButton.classList.remove('opacity-75', 'cursor-not-allowed', 'bg-pink-700');
+            startButton.classList.add('bg-pink-500', 'hover:bg-pink-600', 'animate-pulse-slow', 'cursor-pointer');
+            startButton.addEventListener('click', iniciarHomenagem, { once: true });
+        }, { once: true });
+
+        // 3. Função chamada pelo clique
+        function iniciarHomenagem() {
+            telaInicio.style.display = 'none';
+            conteudoPrincipal.style.opacity = '1';
+            audioPlayer.volume = 0.5;
+            audioPlayer.play();
+            startSlideshow();
+            setTimeout(() => {
+                mostrarProximaFrase();
+                setInterval(mostrarProximaFrase, 6000);
+            }, 1000);
+        }
+
+        // --- FUNÇÕES AUXILIARES ---
         function startSlideshow() {
             if (slideImages.length === 0) return;
-
             bgTop.style.backgroundImage = `url('${slideImages[0]}')`;
             bgBottom.style.backgroundImage = `url('${slideImages[0]}')`;
+            bgTop.style.opacity = '1';
+            bgBottom.style.opacity = '1';
 
             if (slideImages.length > 1) {
-                setInterval(changeSlide, 5000); // Muda de imagem a cada 5 segundos
+                setInterval(changeSlide, 5000);
             }
         }
 
@@ -105,22 +146,6 @@
             }, 1500);
         }
 
-
-        // --- FRASES DE AMOR ---
-        const frases = [
-            "Karen Cristina, você ilumina os meus dias.",
-            "Cada momento com você é o meu favorito.",
-            "Seu sorriso é a melodia mais linda que já ouvi.",
-            "O meu lugar favorito no mundo é ao seu lado.",
-            "Ainda bem que a vida te trouxe pra mim.",
-            "Você não é apenas o meu amor, é a minha vida.",
-            "Para o mundo, você pode ser uma pessoa, mas para mim, você é o mundo.",
-            "Eu te amo mais do que as palavras podem dizer."
-        ];
-        
-        const fraseElemento = document.getElementById('frase-amor');
-        let indexFrase = 0;
-
         function mostrarProximaFrase() {
             fraseElemento.style.opacity = '0';
             setTimeout(() => {
@@ -129,51 +154,6 @@
                 indexFrase = (indexFrase + 1) % frases.length;
             }, 1500);
         }
-
-
-        // --- MÚSICA DO YOUTUBE ---
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        let player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '390',
-                width: '640',
-                videoId: '5L5n_2t43aU', // ID do vídeo "Sorriso Resplandecente"
-                playerVars: { 
-                    'autoplay': 1, 
-                    'controls': 0, 
-                    'loop': 1, 
-                    'playlist': '5L5n_2t43aU' // Necessário para o loop
-                },
-                events: { 'onReady': onPlayerReady }
-            });
-        }
-
-        function onPlayerReady(event) {
-             document.body.click();
-             event.target.playVideo();
-             event.target.setVolume(50);
-        }
-        
-        document.body.addEventListener('click', () => {
-            if (player && typeof player.playVideo === 'function') {
-                player.playVideo();
-            }
-        }, { once: true });
-
-        // --- INICIAR TUDO QUANDO A PÁGINA CARREGAR ---
-        window.onload = function() {
-            startSlideshow();
-            setTimeout(() => {
-                mostrarProximaFrase();
-                setInterval(mostrarProximaFrase, 6000);
-            }, 1000);
-        }
-
     </script>
 </body>
 </html>
